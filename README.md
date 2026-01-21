@@ -49,12 +49,7 @@ A comprehensive RESTful API service for managing organizational risks, built wit
 2. Install and configure MySQL Server
 3. Start MySQL service
 
-**Option 3: Docker (Cross-platform)**
-```bash
-docker run --name mysql-risk -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=risk_management -p 3306:3306 -d mysql:8.0
-```
-
-**Option 4: Local Development Stack**
+**Option 3: Local Development Stack**
 - WAMP (Windows): https://www.wampserver.com/
 - MAMP (macOS): https://www.mamp.info/
 - LAMP (Linux): Use package manager to install Apache, MySQL, PHP
@@ -86,16 +81,9 @@ docker run --name mysql-risk -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=risk_
    - Create a new database named `risk_management`
    - Set charset to `utf8mb4` and collation to `utf8mb4_unicode_ci`
    
-   **Option C: Using Docker**
-   ```bash
-   docker-compose up -d
-   # This will start MySQL, phpMyAdmin, and the application
-   ```
-
 4. **Environment configuration**
    Update the `.env` file with your database credentials:
    
-   **For local MySQL:**
    ```env
    DB_CONNECTION=mysql
    DB_HOST=127.0.0.1
@@ -103,16 +91,6 @@ docker run --name mysql-risk -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=risk_
    DB_DATABASE=risk_management
    DB_USERNAME=root
    DB_PASSWORD=your_password
-   ```
-   
-   **For Docker setup:**
-   ```env
-   DB_CONNECTION=mysql
-   DB_HOST=mysql
-   DB_PORT=3306
-   DB_DATABASE=risk_management
-   DB_USERNAME=root
-   DB_PASSWORD=root
    ```
 
 5. **Automated Setup (Recommended)**
@@ -140,32 +118,6 @@ docker run --name mysql-risk -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=risk_
    ```
 
 The API will be available at `http://localhost:8000`
-
-## Docker Deployment
-
-For easy deployment with Docker:
-
-1. **Start the services**
-   ```bash
-   docker-compose up -d
-   ```
-
-2. **Run setup inside container**
-   ```bash
-   docker-compose exec app php artisan migrate
-   docker-compose exec app php artisan db:seed
-   docker-compose exec app php artisan l5-swagger:generate
-   ```
-
-3. **Access the services**
-   - API: http://localhost:8000
-   - phpMyAdmin: http://localhost:8080
-   - API Documentation: http://localhost:8000/api/documentation
-
-4. **Stop the services**
-   ```bash
-   docker-compose down
-   ```
 
 ## API Documentation
 
