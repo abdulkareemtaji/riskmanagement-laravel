@@ -1,0 +1,905 @@
+{
+	"info": {
+		"_postman_id": "risk-management-api-collection",
+		"name": "Risk Management API",
+		"description": "Complete API collection for Risk Management System with authentication, risks, mitigation actions, assessments, and reports.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\",\n  \"department\": \"IT\",\n  \"position\": \"Developer\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						},
+						"description": "Register a new user account"
+					}
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('auth_token', response.token);",
+									"    console.log('Token saved: ' + response.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@riskmanagement.com\",\n  \"password\": \"admin123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"description": "Login with email and password. Token is automatically saved to environment."
+					}
+				},
+				{
+					"name": "Get Current User",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/me",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"me"
+							]
+						},
+						"description": "Get current authenticated user profile"
+					}
+				},
+				{
+					"name": "Refresh Token",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/refresh",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"refresh"
+							]
+						},
+						"description": "Refresh JWT token"
+					}
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"logout"
+							]
+						},
+						"description": "Logout and invalidate token"
+					}
+				}
+			],
+			"description": "Authentication endpoints for user management"
+		},
+		{
+			"name": "Risk Management",
+			"item": [
+				{
+					"name": "Get All Risks",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/risks?per_page=10&category=operational&status=assessed&sort_by=risk_score&sort_order=desc",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"risks"
+							],
+							"query": [
+								{
+									"key": "per_page",
+									"value": "10",
+									"description": "Items per page"
+								},
+								{
+									"key": "category",
+									"value": "operational",
+									"description": "Filter by category: operational, financial, compliance, strategic, reputational"
+								},
+								{
+									"key": "status",
+									"value": "assessed",
+									"description": "Filter by status: identified, assessed, mitigating, closed"
+								},
+								{
+									"key": "risk_level",
+									"value": "high",
+									"description": "Filter by risk level: low, medium, high",
+									"disabled": true
+								},
+								{
+									"key": "owner_id",
+									"value": "1",
+									"description": "Filter by owner ID",
+									"disabled": true
+								},
+								{
+									"key": "sort_by",
+									"value": "risk_score",
+									"description": "Sort field: title, risk_score, created_at, etc."
+								},
+								{
+									"key": "sort_order",
+									"value": "desc",
+									"description": "Sort order: asc, desc"
+								}
+							]
+						},
+						"description": "Get paginated list of risks with filtering and sorting options"
+					}
+				},
+				{
+					"name": "Create Risk",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"API Security Risk\",\n  \"description\": \"Potential security vulnerability in API authentication system\",\n  \"category\": \"operational\",\n  \"likelihood\": 4,\n  \"impact\": 5,\n  \"identified_date\": \"2026-01-20\",\n  \"department\": \"IT Security\",\n  \"target_closure_date\": \"2026-03-01\",\n  \"notes\": \"Requires immediate attention and security audit\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/risks",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"risks"
+							]
+						},
+						"description": "Create a new risk. Risk score is automatically calculated."
+					}
+				},
+				{
+					"name": "Get Risk by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/risks/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"risks",
+								"1"
+							]
+						},
+						"description": "Get specific risk with mitigation actions and assessments"
+					}
+				},
+				{
+					"name": "Update Risk",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"mitigating\",\n  \"likelihood\": 3,\n  \"impact\": 4,\n  \"notes\": \"Mitigation actions have been implemented. Risk level reduced.\",\n  \"target_closure_date\": \"2026-02-15\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/risks/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"risks",
+								"1"
+							]
+						},
+						"description": "Update risk details. Risk score recalculated automatically."
+					}
+				},
+				{
+					"name": "Delete Risk",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/risks/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"risks",
+								"1"
+							]
+						},
+						"description": "Soft delete a risk (can be restored)"
+					}
+				}
+			],
+			"description": "Risk management CRUD operations"
+		},
+		{
+			"name": "Mitigation Actions",
+			"item": [
+				{
+					"name": "Get All Actions",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/mitigation-actions?status=in_progress&overdue=false&per_page=15",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"mitigation-actions"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "in_progress",
+									"description": "Filter by status: planned, in_progress, completed, cancelled"
+								},
+								{
+									"key": "assigned_to",
+									"value": "2",
+									"description": "Filter by assigned user ID",
+									"disabled": true
+								},
+								{
+									"key": "overdue",
+									"value": "false",
+									"description": "Filter overdue actions (true/false)"
+								},
+								{
+									"key": "per_page",
+									"value": "15",
+									"description": "Items per page"
+								}
+							]
+						},
+						"description": "Get paginated list of mitigation actions with filtering"
+					}
+				},
+				{
+					"name": "Create Action",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"risk_id\": 1,\n  \"title\": \"Implement Two-Factor Authentication\",\n  \"description\": \"Deploy 2FA across all user accounts to enhance security\",\n  \"assigned_to\": 2,\n  \"due_date\": \"2026-02-15\",\n  \"priority\": 1,\n  \"cost_estimate\": 25000.00,\n  \"notes\": \"High priority security enhancement\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/mitigation-actions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"mitigation-actions"
+							]
+						},
+						"description": "Create new mitigation action for a risk"
+					}
+				},
+				{
+					"name": "Get Action by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/mitigation-actions/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"mitigation-actions",
+								"1"
+							]
+						},
+						"description": "Get specific mitigation action with risk and user details"
+					}
+				},
+				{
+					"name": "Update Action",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"completed\",\n  \"notes\": \"Two-factor authentication successfully implemented across all systems\",\n  \"completed_date\": \"2026-01-25\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/mitigation-actions/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"mitigation-actions",
+								"1"
+							]
+						},
+						"description": "Update mitigation action status and details"
+					}
+				},
+				{
+					"name": "Delete Action",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/mitigation-actions/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"mitigation-actions",
+								"1"
+							]
+						},
+						"description": "Delete mitigation action"
+					}
+				},
+				{
+					"name": "Get Actions for Risk",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/risks/1/mitigation-actions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"risks",
+								"1",
+								"mitigation-actions"
+							]
+						},
+						"description": "Get all mitigation actions for a specific risk"
+					}
+				}
+			],
+			"description": "Mitigation action management"
+		},
+		{
+			"name": "Risk Assessments",
+			"item": [
+				{
+					"name": "Get All Assessments",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/risk-assessments?per_page=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"risk-assessments"
+							],
+							"query": [
+								{
+									"key": "assessor_id",
+									"value": "3",
+									"description": "Filter by assessor user ID",
+									"disabled": true
+								},
+								{
+									"key": "start_date",
+									"value": "2026-01-01",
+									"description": "Filter by date range start",
+									"disabled": true
+								},
+								{
+									"key": "end_date",
+									"value": "2026-12-31",
+									"description": "Filter by date range end",
+									"disabled": true
+								},
+								{
+									"key": "per_page",
+									"value": "10",
+									"description": "Items per page"
+								}
+							]
+						},
+						"description": "Get paginated list of risk assessments"
+					}
+				},
+				{
+					"name": "Create Assessment for Risk",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"likelihood_before\": 5,\n  \"impact_before\": 5,\n  \"likelihood_after\": 3,\n  \"impact_after\": 4,\n  \"assessment_notes\": \"Risk significantly reduced after implementing security measures. Monitoring continues.\",\n  \"assessment_date\": \"2026-01-20\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/risks/1/assessments",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"risks",
+								"1",
+								"assessments"
+							]
+						},
+						"description": "Create new assessment for a risk. Updates risk likelihood and impact."
+					}
+				},
+				{
+					"name": "Get Assessments for Risk",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/risks/1/assessments",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"risks",
+								"1",
+								"assessments"
+							]
+						},
+						"description": "Get all assessments for a specific risk"
+					}
+				},
+				{
+					"name": "Get Assessment by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/risk-assessments/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"risk-assessments",
+								"1"
+							]
+						},
+						"description": "Get specific risk assessment with risk and assessor details"
+					}
+				},
+				{
+					"name": "Update Assessment",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"likelihood_after\": 2,\n  \"impact_after\": 3,\n  \"assessment_notes\": \"Further risk reduction achieved. Additional controls implemented.\",\n  \"assessment_date\": \"2026-01-25\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/risk-assessments/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"risk-assessments",
+								"1"
+							]
+						},
+						"description": "Update risk assessment details"
+					}
+				},
+				{
+					"name": "Delete Assessment",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/risk-assessments/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"risk-assessments",
+								"1"
+							]
+						},
+						"description": "Delete risk assessment"
+					}
+				}
+			],
+			"description": "Risk assessment tracking and management"
+		},
+		{
+			"name": "Reports & Analytics",
+			"item": [
+				{
+					"name": "Dashboard Summary",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/reports/dashboard",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"reports",
+								"dashboard"
+							]
+						},
+						"description": "Get dashboard summary with key metrics and counts"
+					}
+				},
+				{
+					"name": "Risk Summary Statistics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/reports/risk-summary",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"reports",
+								"risk-summary"
+							]
+						},
+						"description": "Get detailed risk statistics by status, category, and level"
+					}
+				},
+				{
+					"name": "Risk Matrix Data",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/reports/risk-matrix",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"reports",
+								"risk-matrix"
+							]
+						},
+						"description": "Get risk matrix data for likelihood vs impact visualization"
+					}
+				},
+				{
+					"name": "Risks by Category",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/reports/risks-by-category",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"reports",
+								"risks-by-category"
+							]
+						},
+						"description": "Get risk breakdown by category with counts and averages"
+					}
+				},
+				{
+					"name": "Risks by Department",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/reports/risks-by-department",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"reports",
+								"risks-by-department"
+							]
+						},
+						"description": "Get risk breakdown by department with counts and averages"
+					}
+				},
+				{
+					"name": "Overdue Actions",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/reports/overdue-actions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"reports",
+								"overdue-actions"
+							]
+						},
+						"description": "Get list of overdue mitigation actions with details"
+					}
+				},
+				{
+					"name": "High Risk Items",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/reports/high-risk-items",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"reports",
+								"high-risk-items"
+							]
+						},
+						"description": "Get high-priority risks that need immediate attention"
+					}
+				}
+			],
+			"description": "Reporting and analytics endpoints"
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{auth_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000/api/v1",
+			"type": "string"
+		},
+		{
+			"key": "auth_token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

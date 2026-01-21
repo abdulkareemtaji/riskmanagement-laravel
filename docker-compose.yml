@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - mysql
+    environment:
+      - DB_CONNECTION=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=risk_management
+      - DB_USERNAME=root
+      - DB_PASSWORD=root
+    networks:
+      - risk-network
+
+  mysql:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: risk_management
+      MYSQL_USER: risk_user
+      MYSQL_PASSWORD: risk_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./setup_mysql.sql:/docker-entrypoint-initdb.d/setup.sql
+    networks:
+      - risk-network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: root
+      PMA_PASSWORD: root
+    depends_on:
+      - mysql
+    networks:
+      - risk-network
+
+volumes:
+  mysql_data:
+
+networks:
+  risk-network:
+    driver: bridge
