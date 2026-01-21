@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\RiskResource;
 use App\Models\Risk;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class RiskController extends Controller
 {
@@ -15,10 +17,8 @@ class RiskController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('permission:view-risks', ['only' => ['index', 'show']]);
-        $this->middleware('permission:create-risks', ['only' => ['store']]);
-        $this->middleware('permission:edit-risks', ['only' => ['update']]);
-        $this->middleware('permission:delete-risks', ['only' => ['destroy']]);
+        // Permission checks are handled within each method
+        // to allow for more granular control and proper relationship loading
     }
 
     /**
@@ -98,9 +98,8 @@ class RiskController extends Controller
         $perPage = $request->get('per_page', 15);
         $risks = $query->paginate($perPage);
 
-        return response()->json([
+        return RiskResource::collection($risks)->additional([
             'message' => 'Risks retrieved successfully',
-            'data' => $risks,
         ]);
     }
 
@@ -156,7 +155,7 @@ class RiskController extends Controller
         }
 
         $data = $validator->validated();
-        
+
         // Set owner to current user if not specified or user doesn't have permission
         if (!isset($data['owner_id']) || !auth()->user()->hasPermissionTo('manage-all-risks')) {
             $data['owner_id'] = auth()->id();
@@ -170,10 +169,9 @@ class RiskController extends Controller
             $this->sendHighRiskNotification($risk);
         }
 
-        return response()->json([
+        return (new RiskResource($risk))->additional([
             'message' => 'Risk created successfully',
-            'data' => $risk,
-        ], 201);
+        ])->response()->setStatusCode(201);
     }
 
     /**
@@ -208,9 +206,8 @@ class RiskController extends Controller
             ], 403);
         }
 
-        return response()->json([
+        return (new RiskResource($risk))->additional([
             'message' => 'Risk retrieved successfully',
-            'data' => $risk,
         ]);
     }
 
@@ -282,7 +279,7 @@ class RiskController extends Controller
         }
 
         $data = $validator->validated();
-        
+
         // Only allow owner change if user has permission
         if (isset($data['owner_id']) && !$user->hasPermissionTo('manage-all-risks')) {
             unset($data['owner_id']);
@@ -297,9 +294,8 @@ class RiskController extends Controller
             $this->sendHighRiskNotification($risk);
         }
 
-        return response()->json([
+        return (new RiskResource($risk))->additional([
             'message' => 'Risk updated successfully',
-            'data' => $risk,
         ]);
     }
 

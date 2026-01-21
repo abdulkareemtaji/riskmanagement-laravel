@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,7 +21,7 @@ use Tymon\JWTAuth\Exceptions\JWTException;
  *         email="admin@riskmanagement.com"
  *     )
  * )
- * 
+ *
  * @OA\SecurityScheme(
  *     securityScheme="bearerAuth",
  *     type="http",
@@ -92,14 +93,14 @@ class AuthController extends Controller
             'position' => $request->position,
         ]);
 
-        // Assign default role
-        $user->assignRole('Risk Owner');
+        // Assign default role (with api guard)
+        $user->assignRole(\Spatie\Permission\Models\Role::findByName('Risk Owner', 'api'));
 
         $token = JWTAuth::fromUser($user);
 
         return response()->json([
             'message' => 'User registered successfully',
-            'user' => $user->load('roles'),
+            'user' => new UserResource($user->load('roles')),
             'token' => $token,
         ], 201);
     }
@@ -160,7 +161,7 @@ class AuthController extends Controller
         }
 
         $user = Auth::user();
-        
+
         if (!$user->is_active) {
             return response()->json([
                 'message' => 'Account is deactivated'
@@ -169,10 +170,10 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Login successful',
-            'user' => $user->load('roles'),
+            'user' => new UserResource($user->load('roles')),
             'token' => $token,
             'token_type' => 'bearer',
-            'expires_in' => auth()->factory()->getTTL() * 60
+            'expires_in' => config('jwt.ttl') * 60
         ]);
     }
 
@@ -229,7 +230,7 @@ class AuthController extends Controller
             return response()->json([
                 'token' => $token,
                 'token_type' => 'bearer',
-                'expires_in' => auth()->factory()->getTTL() * 60
+                'expires_in' => config('jwt.ttl') * 60
             ]);
         } catch (JWTException $e) {
             return response()->json([
@@ -256,7 +257,7 @@ class AuthController extends Controller
     public function me()
     {
         return response()->json([
-            'user' => auth()->user()->load('roles', 'permissions')
+            'user' => new UserResource(auth()->user()->load('roles', 'permissions'))
         ]);
     }
 }

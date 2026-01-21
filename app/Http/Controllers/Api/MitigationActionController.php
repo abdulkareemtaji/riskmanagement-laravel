@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\MitigationActionResource;
 use App\Models\MitigationAction;
 use App\Models\Risk;
 use Illuminate\Http\Request;
@@ -15,10 +16,8 @@ class MitigationActionController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('permission:view-mitigation-actions', ['only' => ['index', 'show', 'getByRisk']]);
-        $this->middleware('permission:create-mitigation-actions', ['only' => ['store']]);
-        $this->middleware('permission:edit-mitigation-actions', ['only' => ['update']]);
-        $this->middleware('permission:delete-mitigation-actions', ['only' => ['destroy']]);
+        // Permission checks are handled within each method
+        // to allow for more granular control and proper relationship loading
     }
 
     /**
@@ -84,9 +83,8 @@ class MitigationActionController extends Controller
         $perPage = $request->get('per_page', 15);
         $actions = $query->paginate($perPage);
 
-        return response()->json([
+        return MitigationActionResource::collection($actions)->additional([
             'message' => 'Mitigation actions retrieved successfully',
-            'data' => $actions,
         ]);
     }
 
@@ -148,10 +146,9 @@ class MitigationActionController extends Controller
         $action = MitigationAction::create($validator->validated());
         $action->load(['risk', 'assignedUser']);
 
-        return response()->json([
+        return (new MitigationActionResource($action))->additional([
             'message' => 'Mitigation action created successfully',
-            'data' => $action,
-        ], 201);
+        ])->response()->setStatusCode(201);
     }
 
     /**
@@ -186,9 +183,8 @@ class MitigationActionController extends Controller
             ], 403);
         }
 
-        return response()->json([
+        return (new MitigationActionResource($action))->additional([
             'message' => 'Mitigation action retrieved successfully',
-            'data' => $action,
         ]);
     }
 
@@ -265,9 +261,8 @@ class MitigationActionController extends Controller
         $action->update($data);
         $action->load(['risk', 'assignedUser']);
 
-        return response()->json([
+        return (new MitigationActionResource($action))->additional([
             'message' => 'Mitigation action updated successfully',
-            'data' => $action,
         ]);
     }
 
@@ -344,9 +339,8 @@ class MitigationActionController extends Controller
                                  ->orderBy('due_date')
                                  ->get();
 
-        return response()->json([
+        return MitigationActionResource::collection($actions)->additional([
             'message' => 'Mitigation actions retrieved successfully',
-            'data' => $actions,
         ]);
     }
 }

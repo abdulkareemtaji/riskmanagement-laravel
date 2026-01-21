@@ -14,15 +14,20 @@ A comprehensive RESTful API service for managing organizational risks, built wit
 
 ### Technical Features
 - **JWT-based authentication** (tymon/jwt-auth)
-  - *Note: Laravel Passport requires PHP 8.0+; current PHP 7.4.33*
-  - JWT implementation is production-ready and fully functional
-  - See AUTHENTICATION_NOTES.md for details
-- Role and permission-based authorization
-- Input validation and sanitization
-- Rate limiting and request logging
-- OpenAPI/Swagger documentation
-- Automatic risk score calculation
-- Database migrations and seeders
+  - Production-ready stateless authentication
+  - Token refresh mechanism (60-minute TTL)
+  - Secure password hashing
+- **Laravel API Resources** for consistent response formatting
+- **Role and permission-based authorization** (Spatie Laravel Permission)
+  - 4 roles with granular permissions
+  - API guard support
+- **Input validation and sanitization**
+- **Rate limiting** (60 requests/minute) and request logging
+- **OpenAPI/Swagger documentation** with interactive UI
+- **Automatic risk score calculation** (Likelihood × Impact)
+- **Soft deletes** for data recovery
+- **Database migrations and seeders** with sample data
+- **Postman collection** included for API testing
 
 ## Installation
 
@@ -167,6 +172,13 @@ For easy deployment with Docker:
 ### Interactive Documentation
 Access the Swagger UI documentation at: `http://localhost:8000/api/documentation`
 
+### API Response Format
+All API responses use **Laravel API Resources** for consistent formatting:
+- **Standardized structure** across all endpoints
+- **Conditional loading** of relationships
+- **Automatic type casting** (dates, decimals, booleans)
+- **Pagination metadata** included for list endpoints
+
 ### Authentication
 
 All API endpoints (except registration and login) require JWT authentication. Include the token in the Authorization header:
@@ -175,16 +187,18 @@ All API endpoints (except registration and login) require JWT authentication. In
 Authorization: Bearer <your-jwt-token>
 ```
 
+**Token Expiration**: Tokens expire after 60 minutes. Use the refresh endpoint to get a new token without re-authenticating.
+
 ### Default Users
 
 The system comes with pre-configured users for testing:
 
-| Role | Email | Password | Permissions |
-|------|-------|----------|-------------|
-| Admin | admin@riskmanagement.com | admin123 | Full system access |
-| Risk Manager | manager@riskmanagement.com | manager123 | Manage all risks and actions |
-| Risk Owner | owner@riskmanagement.com | owner123 | Manage assigned risks |
-| Auditor | auditor@riskmanagement.com | auditor123 | Read-only access |
+| Role | Email | Password | Permission Count | Description |
+|------|-------|----------|------------------|-------------|
+| Admin | admin@riskmanagement.com | admin123 | 21 permissions | Full system access, user management |
+| Risk Manager | manager@riskmanagement.com | manager123 | 13 permissions | Manage all risks, actions, assessments |
+| Risk Owner | owner@riskmanagement.com | owner123 | 9 permissions | Create and edit assigned risks |
+| Auditor | auditor@riskmanagement.com | auditor123 | 5 permissions | Read-only access, export reports |
 
 ## API Endpoints
 
@@ -247,26 +261,35 @@ The system comes with pre-configured users for testing:
 
 ## Role-Based Access Control
 
-### Admin
-- Full system access
-- User management
-- System configuration
+### Admin (21 Permissions)
+**Full System Access**
+- **Risks**: view, create, edit, delete, manage-all-risks
+- **Mitigation Actions**: view, create, edit, delete, assign
+- **Assessments**: view, create, edit, delete
+- **Users**: view, create, edit, delete
+- **Reports**: view, export
+- **System**: manage-system
 
-### Risk Manager
-- Create and edit all risks
-- Assign mitigation actions
-- View all reports
-- Export data
+### Risk Manager (13 Permissions)
+**Can Manage All Organizational Risks**
+- **Risks**: view, create, edit, manage-all-risks
+- **Mitigation Actions**: view, create, edit, assign
+- **Assessments**: view, create, edit
+- **Reports**: view, export
 
-### Risk Owner
-- Create and edit assigned risks
-- Manage own mitigation actions
-- View relevant reports
+### Risk Owner (9 Permissions)
+**Can Manage Assigned Risks**
+- **Risks**: view, create, edit (own risks only)
+- **Mitigation Actions**: view, create, edit
+- **Assessments**: view, create
+- **Reports**: view
 
-### Auditor
-- Read-only access to all data
-- Export reports
-- View assessments
+### Auditor (5 Permissions)
+**Read-Only Access for Compliance**
+- **Risks**: view
+- **Mitigation Actions**: view
+- **Assessments**: view
+- **Reports**: view, export
 
 ## Security Features
 
@@ -360,13 +383,93 @@ curl -X GET http://localhost:8000/api/v1/reports/dashboard \
   -H "Authorization: Bearer <your-token>"
 ```
 
+## API Response Examples
+
+### Successful Response (Risk Resource)
+```json
+{
+  "data": {
+    "id": 1,
+    "title": "Data Security Vulnerability",
+    "description": "Critical security issue in database access",
+    "category": "operational",
+    "category_label": "Operational",
+    "likelihood": 4,
+    "impact": 5,
+    "risk_score": 20.0,
+    "risk_level": "high",
+    "status": "assessed",
+    "status_label": "Assessed",
+    "owner": {
+      "id": 1,
+      "name": "System Administrator",
+      "email": "admin@riskmanagement.com"
+    },
+    "mitigation_actions": [],
+    "created_at": "2026-01-21T10:25:38.000000Z",
+    "updated_at": "2026-01-21T10:25:38.000000Z"
+  },
+  "message": "Risk retrieved successfully"
+}
+```
+
+### Paginated Response (Risk Collection)
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "title": "Data Security Vulnerability",
+      "risk_score": 20.0,
+      "risk_level": "high"
+      // ... other fields
+    }
+  ],
+  "links": {
+    "first": "http://localhost:8000/api/v1/risks?page=1",
+    "last": "http://localhost:8000/api/v1/risks?page=3",
+    "prev": null,
+    "next": "http://localhost:8000/api/v1/risks?page=2"
+  },
+  "meta": {
+    "current_page": 1,
+    "from": 1,
+    "last_page": 3,
+    "per_page": 15,
+    "to": 15,
+    "total": 45
+  },
+  "message": "Risks retrieved successfully"
+}
+```
+
+### Error Response
+```json
+{
+  "message": "This action is unauthorized.",
+  "errors": {
+    "permission": ["You need 'manage-all-risks' permission"]
+  }
+}
+```
+
 ## Testing
 
-The system includes sample data for testing:
-- 5 sample risks across different categories
+### Postman Collection
+A complete Postman collection is included for testing all API endpoints:
+- **File**: `Risk_Management_API.postman_collection.json`
+- **Environment**: `Risk_Management_Environment.postman_environment.json`
+- **30+ API requests** covering all endpoints
+- Pre-configured with example requests and responses
+- Import into Postman and update the `base_url` and `token` variables
+
+### Sample Data
+The system includes pre-seeded data for testing:
+- 4 users with different roles (Admin, Risk Manager, Risk Owner, Auditor)
+- Sample risks across all categories
 - Multiple mitigation actions per risk
 - Risk assessments with before/after tracking
-- Users with different roles and permissions
+- Complete permission structure
 
 ## Logging
 

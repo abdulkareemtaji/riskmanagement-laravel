@@ -22,17 +22,21 @@ use App\Http\Controllers\Api\ReportController;
 // API Version 1
 Route::prefix('v1')->group(function () {
     
-    // Authentication routes
+    // Public Authentication routes
     Route::prefix('auth')->group(function () {
         Route::post('register', [AuthController::class, 'register']);
         Route::post('login', [AuthController::class, 'login']);
-        Route::post('logout', [AuthController::class, 'logout']);
-        Route::post('refresh', [AuthController::class, 'refresh']);
-        Route::get('me', [AuthController::class, 'me']);
     });
 
     // Protected routes
     Route::middleware(['auth:api', 'throttle:60,1'])->group(function () {
+        
+        // Protected Authentication routes
+        Route::prefix('auth')->group(function () {
+            Route::post('logout', [AuthController::class, 'logout']);
+            Route::post('refresh', [AuthController::class, 'refresh']);
+            Route::get('me', [AuthController::class, 'me']);
+        });
         
         // Risk Management routes
         Route::apiResource('risks', RiskController::class);

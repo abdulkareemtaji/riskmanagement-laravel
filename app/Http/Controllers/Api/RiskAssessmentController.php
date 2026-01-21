@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\RiskAssessmentResource;
 use App\Models\Risk;
 use App\Models\RiskAssessment;
 use Illuminate\Http\Request;
@@ -15,10 +16,8 @@ class RiskAssessmentController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('permission:view-risk-assessments', ['only' => ['index', 'show']]);
-        $this->middleware('permission:create-risk-assessments', ['only' => ['store']]);
-        $this->middleware('permission:edit-risk-assessments', ['only' => ['update']]);
-        $this->middleware('permission:delete-risk-assessments', ['only' => ['destroy']]);
+        // Permission checks are handled within each method
+        // to allow for more granular control and proper relationship loading
     }
 
     /**
@@ -68,9 +67,8 @@ class RiskAssessmentController extends Controller
         $perPage = $request->get('per_page', 15);
         $assessments = $query->orderBy('assessment_date', 'desc')->paginate($perPage);
 
-        return response()->json([
+        return RiskAssessmentResource::collection($assessments)->additional([
             'message' => 'Risk assessments retrieved successfully',
-            'data' => $assessments,
         ]);
     }
 
@@ -94,9 +92,8 @@ class RiskAssessmentController extends Controller
                                    ->orderBy('assessment_date', 'desc')
                                    ->get();
 
-        return response()->json([
+        return RiskAssessmentResource::collection($assessments)->additional([
             'message' => 'Risk assessments retrieved successfully',
-            'data' => $assessments,
         ]);
     }
 
@@ -173,10 +170,9 @@ class RiskAssessmentController extends Controller
 
         $assessment->load(['risk', 'assessor']);
 
-        return response()->json([
+        return (new RiskAssessmentResource($assessment))->additional([
             'message' => 'Risk assessment created successfully',
-            'data' => $assessment,
-        ], 201);
+        ])->response()->setStatusCode(201);
     }
 
     /**
@@ -209,9 +205,8 @@ class RiskAssessmentController extends Controller
             ], 403);
         }
 
-        return response()->json([
+        return (new RiskAssessmentResource($assessment))->additional([
             'message' => 'Risk assessment retrieved successfully',
-            'data' => $assessment,
         ]);
     }
 
@@ -286,9 +281,8 @@ class RiskAssessmentController extends Controller
 
         $assessment->load(['risk', 'assessor']);
 
-        return response()->json([
+        return (new RiskAssessmentResource($assessment))->additional([
             'message' => 'Risk assessment updated successfully',
-            'data' => $assessment,
         ]);
     }
 

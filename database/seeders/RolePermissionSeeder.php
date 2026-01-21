@@ -52,17 +52,17 @@ class RolePermissionSeeder extends Seeder
         ];
 
         foreach ($permissions as $permission) {
-            Permission::firstOrCreate(['name' => $permission]);
+            Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'api']);
         }
 
         // Create roles and assign permissions
         
         // Admin role - full access
-        $adminRole = Role::firstOrCreate(['name' => 'Admin']);
-        $adminRole->givePermissionTo(Permission::all());
+        $adminRole = Role::firstOrCreate(['name' => 'Admin', 'guard_name' => 'api']);
+        $adminRole->givePermissionTo(Permission::where('guard_name', 'api')->get());
 
         // Risk Manager role - can manage all risks and actions
-        $riskManagerRole = Role::firstOrCreate(['name' => 'Risk Manager']);
+        $riskManagerRole = Role::firstOrCreate(['name' => 'Risk Manager', 'guard_name' => 'api']);
         $riskManagerRole->givePermissionTo([
             'view-risks', 'create-risks', 'edit-risks', 'manage-all-risks',
             'view-mitigation-actions', 'create-mitigation-actions', 'edit-mitigation-actions', 'assign-mitigation-actions',
@@ -71,7 +71,7 @@ class RolePermissionSeeder extends Seeder
         ]);
 
         // Risk Owner role - can manage own risks
-        $riskOwnerRole = Role::firstOrCreate(['name' => 'Risk Owner']);
+        $riskOwnerRole = Role::firstOrCreate(['name' => 'Risk Owner', 'guard_name' => 'api']);
         $riskOwnerRole->givePermissionTo([
             'view-risks', 'create-risks', 'edit-risks',
             'view-mitigation-actions', 'create-mitigation-actions', 'edit-mitigation-actions',
@@ -80,7 +80,7 @@ class RolePermissionSeeder extends Seeder
         ]);
 
         // Auditor role - read-only access
-        $auditorRole = Role::firstOrCreate(['name' => 'Auditor']);
+        $auditorRole = Role::firstOrCreate(['name' => 'Auditor', 'guard_name' => 'api']);
         $auditorRole->givePermissionTo([
             'view-risks',
             'view-mitigation-actions',

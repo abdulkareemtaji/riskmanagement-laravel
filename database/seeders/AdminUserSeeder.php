@@ -27,7 +27,7 @@ class AdminUserSeeder extends Seeder
             ]
         );
         
-        $admin->assignRole('Admin');
+        $admin->assignRole(\Spatie\Permission\Models\Role::findByName('Admin', 'api'));
 
         // Create sample Risk Manager
         $riskManager = User::firstOrCreate(
@@ -41,7 +41,7 @@ class AdminUserSeeder extends Seeder
             ]
         );
         
-        $riskManager->assignRole('Risk Manager');
+        $riskManager->assignRole(\Spatie\Permission\Models\Role::findByName('Risk Manager', 'api'));
 
         // Create sample Risk Owner
         $riskOwner = User::firstOrCreate(
@@ -55,7 +55,7 @@ class AdminUserSeeder extends Seeder
             ]
         );
         
-        $riskOwner->assignRole('Risk Owner');
+        $riskOwner->assignRole(\Spatie\Permission\Models\Role::findByName('Risk Owner', 'api'));
 
         // Create sample Auditor
         $auditor = User::firstOrCreate(
@@ -69,6 +69,6 @@ class AdminUserSeeder extends Seeder
             ]
         );
         
-        $auditor->assignRole('Auditor');
+        $auditor->assignRole(\Spatie\Permission\Models\Role::findByName('Auditor', 'api'));
     }
 }

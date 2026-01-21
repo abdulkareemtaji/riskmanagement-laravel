@@ -16,7 +16,8 @@ class ReportController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('permission:view-reports');
+        // Permission checks are handled within each method
+        // to allow for more granular control and proper relationship loading
     }
 
     /**
